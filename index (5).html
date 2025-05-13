@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>2000+ Games & Apps</title>
+    <meta name="viewport" content="width=device-width">
+    <style>
+      body {
+        background: black;
+        color: white;
+        text-align: center;
+        font-family: sans-serif;
+        margin-top: 10%;
+      }
+      #jumpscare {
+        display: none;
+        position: fixed;
+        top: 0; left: 0;
+        width: 100vw;
+        height: 100vh;
+        background: black;
+        z-index: 9999;
+      }
+      #jumpscare img {
+        width: 100vw;
+        height: 100vh;
+        object-fit: cover;
+      }
+      button {
+        padding: 15px 30px;
+        font-size: 20px;
+        cursor: pointer;
+      }
+    </style>
+    <script>
+      function scare() {
+        document.getElementById("main").style.display = "none";
+        document.getElementById("jumpscare").style.display = "block";
+        document.getElementById("sfx").play();
+        document.documentElement.requestFullscreen();
+      }
+    </script>
+  </head>
+  <body>
+    <div id="main">
+      <h1>2000+ Games & Apps</h1>
+      <p>Welcome to the ultimate collection of online games and cool apps.<br>
+      Updated weekly. No downloads. Just click and play.</p>
+      <button onclick="scare()">Click for website</button>
+    </div>
+
+    <div id="jumpscare">
+      <img src="scare.jpg" alt="BOO!">
+    </div>
+
+    <audio id="sfx" src="scream.mp3"></audio>
+  </body>
+</html>
