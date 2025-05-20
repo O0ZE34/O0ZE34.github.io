@@ -236,15 +236,6 @@
     function scare() {
       document.getElementById("main").style.display = "none";
       document.getElementById("jumpscare").style.display = "block";
-
-      // Mute everything else
-      document.getElementById("heart").pause();
-      document.getElementById("heart").muted = true;
-      document.getElementById("music").pause();
-      document.getElementById("music").muted = true;
-      document.getElementById("ambient").pause();
-      document.getElementById("ambient").muted = true;
-
       document.getElementById("sfx").play();
       document.documentElement.requestFullscreen();
 
@@ -262,27 +253,19 @@
     }
 
     function triggerBlackout() {
-      const sfx = document.getElementById("sfx");
-      sfx.muted = true; // Mute the jumpscare sound
       document.getElementById("jumpscare").style.display = "none";
       document.getElementById("blackout").style.display = "flex";
-      const heart = document.getElementById("heart");
-      heart.muted = false; // Ensure heart audio is not muted
-      heart.play(); // Play heartbreak.mp3 immediately on click
+      document.getElementById("heart").play();
 
       setTimeout(() => {
+        document.getElementById("music").play();
+        document.getElementById("ambient").play();
         startDialogue();
       }, 3000);
     }
 
     function startDialogue() {
       updateKarmaBar();
-      const music = document.getElementById("music");
-      const ambient = document.getElementById("ambient");
-      music.muted = false; // Ensure music audio is not muted
-      ambient.muted = false; // Ensure ambient audio is not muted
-      music.play(); // Play lastbreath.mp3 when text starts showing
-      ambient.play(); // Play creepy.mp3 as per original behavior
       showDialogue();
     }
 
@@ -321,7 +304,7 @@
     function handleResponse(response) {
       const step = dialogueScript[dialogueIndex];
       choicesDiv.innerHTML = "";
-      npcText.textContent = `You: ${response}`;
+      npcText.textContent = You: ${response};
 
       const rude = ["That’s not funny.", "I don't believe you.", "Stop messing with me!", "This is insane.", "You need help."];
       if (rude.includes(response)) karma--;
