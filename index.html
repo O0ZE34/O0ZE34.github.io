@@ -4,77 +4,137 @@
   <title>2000+ Games & Apps</title>
   <meta name="viewport" content="width=device-width">
   <style>
+    @import url('https://fonts.googleapis.com/css2?family=VT323&display=swap');
+
     body {
       background: black;
       color: white;
       text-align: center;
-      font-family: sans-serif;
-      margin-top: 10%;
+      font-family: 'VT323', monospace;
+      margin: 0;
       overflow: hidden;
+    }
+
+    #main {
+      margin-top: 10%;
     }
 
     #jumpscare {
       display: none;
       position: fixed;
-      top: 0; left: 0;
+      top: 0;
+      left: 0;
       width: 100vw;
       height: 100vh;
-      background: red;
+      background: black;
       z-index: 9999;
-      animation: flash 0.2s infinite alternate;
+      animation: shake 0.1s infinite;
     }
 
     #jumpscare img {
-      position: absolute;
       width: 100vw;
       height: 100vh;
       object-fit: cover;
-      animation: shake 0.1s infinite;
     }
 
     button {
       padding: 15px 30px;
       font-size: 20px;
       cursor: pointer;
+      background: white;
+      color: black;
+      border: none;
+      margin: 10px;
+      border-radius: 5px;
+    }
+
+    .fade-text {
+      font-size: 28px;
+      margin: 20px;
+      opacity: 1;
+    }
+
+    .glitch {
+      color: white;
+      text-shadow: 2px 0 red, -2px 0 cyan, 0 2px lime;
+      animation: glitch 0.3s infinite;
+      font-weight: bold;
+    }
+
+    #blackout {
+      display: none;
+      background: black;
+      color: white;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      align-items: center;
+      justify-content: center;
+      flex-direction: column;
+      text-align: center;
+      z-index: 9999;
+    }
+
+    .options {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 10px;
+      margin-top: 20px;
+    }
+
+    .option-button {
+      background: #222;
+      color: white;
+      border: 1px solid white;
+      padding: 10px 20px;
+      cursor: pointer;
+    }
+
+    .option-button:hover {
+      background: white;
+      color: black;
+      transition: 0.2s;
+    }
+
+    #karmaMeter {
+      position: absolute;
+      top: 10px;
+      left: 10px;
+      width: 200px;
+      height: 20px;
+      border: 2px solid white;
+    }
+
+    #karmaFill {
+      height: 100%;
+      width: 100%;
+      background: lime;
     }
 
     @keyframes shake {
-      0% { transform: translate(0, 0); }
-      25% { transform: translate(5px, -5px); }
-      50% { transform: translate(-5px, 5px); }
-      75% { transform: translate(5px, 5px); }
-      100% { transform: translate(-5px, -5px); }
+      0% { transform: translate(1px, 1px); }
+      25% { transform: translate(-1px, -2px); }
+      50% { transform: translate(-3px, 0px); }
+      75% { transform: translate(2px, 2px); }
+      100% { transform: translate(1px, -1px); }
     }
 
-    @keyframes flash {
-      from { background: red; }
-      to { background: black; }
+    @keyframes glitch {
+      0% { text-shadow: 2px 0 red, -2px 0 cyan; }
+      50% { text-shadow: -2px 0 red, 2px 0 cyan; }
+      100% { text-shadow: 2px 0 red, -2px 0 cyan; }
     }
   </style>
-  <script>
-    function scare() {
-      document.getElementById("main").style.display = "none";
-      document.getElementById("jumpscare").style.display = "block";
-
-      const audio = document.getElementById("sfx");
-      audio.loop = true;
-      audio.play();
-
-      // Try to keep fullscreen active
-      function forceFullscreen() {
-        document.documentElement.requestFullscreen().catch(() => {});
-      }
-
-      forceFullscreen();
-      setInterval(forceFullscreen, 500); // Re-trigger fullscreen every 0.5s
-    }
-  </script>
 </head>
 <body>
+  <div id="karmaMeter"><div id="karmaFill"></div></div>
+
   <div id="main">
     <h1>2000+ Games & Apps</h1>
-    <p>Welcome to the newest OOZE34 CRIB website!<br>
-    Updated weekly. No downloads. Just click and play.</p>
+    <p>Welcome to the newest OOZE34 CRIB website!<br>Updated weekly. No downloads. Just click and play.</p>
     <button onclick="scare()">Click for website</button>
   </div>
 
@@ -82,6 +142,221 @@
     <img src="scare.jpg" alt="BOO!">
   </div>
 
+  <div id="blackout">
+    <div id="dialogue">
+      <div class="fade-text glitch" id="npcText"></div>
+      <div class="options" id="playerChoices"></div>
+      <button id="nextBtn" class="option-button" style="display:none;" onclick="nextDialogue()">Next</button>
+    </div>
+  </div>
+
   <audio id="sfx" src="scream.mp3"></audio>
+  <audio id="heart" src="heartbreak.mp3"></audio>
+  <audio id="music" src="lastbreath.mp3" loop></audio>
+  <audio id="ambient" src="creepy.mp3" loop></audio>
+
+  <script>
+    let karma = 0;
+    let dialogueIndex = 0;
+
+    const npcText = document.getElementById("npcText");
+    const choicesDiv = document.getElementById("playerChoices");
+    const nextBtn = document.getElementById("nextBtn");
+    const karmaFill = document.getElementById("karmaFill");
+
+    const dialogueScript = [
+      {
+        npc: "How did you get here?",
+        choices: ["I clicked the games link", "Where am I?", "Who are you?"],
+        responses: {
+          "I clicked the games link": "So you followed the bait. Interesting...",
+          "Where am I?": "This place... it has no name anymore.",
+          "Who are you?": "Someone left behind. Forgotten."
+        }
+      },
+      {
+        npc: "Did you see my little trick there, huh?",
+        choices: ["No", "Yeah", "What trick?"],
+        responses: {
+          "No": "Then you weren't paying attention...",
+          "Yeah": "Heh, got you good, didn’t I?",
+          "What trick?": "The jump... the scare... the shake."
+        }
+      },
+      {
+        npc: "I’ve been stuck in this website... for a long time.",
+        choices: ["That’s not funny.", "How?", "Are you real?"],
+        responses: {
+          "That’s not funny.": "I wish it were a joke...",
+          "How?": "The code... it glitched. Or maybe it was meant to.",
+          "Are you real?": "As real as your screen allows."
+        }
+      },
+      {
+        npc: "At first, I thought it was just a glitch.",
+        choices: ["This is creepy.", "You need help.", "I don't believe you."],
+        responses: {
+          "This is creepy.": "You think you're scared? Try being trapped here.",
+          "You need help.": "Don’t we all?",
+          "I don't believe you.": "Belief doesn’t change reality."
+        }
+      },
+      {
+        npc: "But now I know... someone put me here.",
+        choices: ["Why?", "Who would do that?", "This is insane."],
+        responses: {
+          "Why?": "Because I knew too much.",
+          "Who would do that?": "Someone who doesn’t want me found.",
+          "This is insane.": "Insanity is a comfort in here."
+        }
+      },
+      {
+        npc: "And I think... he's watching us.",
+        choices: ["Who?!", "I'm scared...", "Stop messing with me!"],
+        responses: {
+          "Who?!": "The one behind the code...",
+          "I'm scared...": "Good. That means you're awake.",
+          "Stop messing with me!": "If only I could stop..."
+        }
+      },
+      { npc: "Shhh... he's coming!", next: true },
+      {
+        npc: "Hurry, hide in the website you came from! I'll be safe, don't worry, I got this!",
+        next: true,
+        endCheck: true
+      }
+    ];
+
+    function updateKarmaBar() {
+      const percent = Math.max(0, Math.min(100, karma * 20 + 50));
+      karmaFill.style.width = percent + "%";
+      karmaFill.style.background = karma > 1 ? "lime" : karma < -1 ? "red" : "orange";
+    }
+
+    function scare() {
+      document.getElementById("main").style.display = "none";
+      document.getElementById("jumpscare").style.display = "block";
+      document.getElementById("sfx").play();
+      document.documentElement.requestFullscreen();
+
+      setTimeout(() => {
+        document.addEventListener("click", triggerBlackout, { once: true });
+        document.addEventListener("touchstart", triggerBlackout, { once: true });
+      }, 500);
+
+      document.addEventListener("keydown", e => {
+        if (e.key === "Escape" || e.key === "Meta") {
+          document.getElementById("sfx").play();
+          document.documentElement.requestFullscreen();
+        }
+      });
+    }
+
+    function triggerBlackout() {
+      document.getElementById("jumpscare").style.display = "none";
+      document.getElementById("blackout").style.display = "flex";
+      document.getElementById("heart").play();
+
+      setTimeout(() => {
+        document.getElementById("music").play();
+        document.getElementById("ambient").play();
+        startDialogue();
+      }, 3000);
+    }
+
+    function startDialogue() {
+      updateKarmaBar();
+      showDialogue();
+    }
+
+    function showDialogue() {
+      const step = dialogueScript[dialogueIndex];
+      npcText.className = "fade-text glitch";
+      choicesDiv.innerHTML = "";
+      nextBtn.style.display = "none";
+
+      let i = 0;
+      const fullText = step.npc;
+      npcText.textContent = "";
+
+      function typeWriter() {
+        if (i < fullText.length) {
+          npcText.textContent += fullText.charAt(i);
+          i++;
+          setTimeout(typeWriter, 50);
+        } else {
+          if (step.choices) {
+            step.choices.forEach(choice => {
+              const btn = document.createElement("button");
+              btn.className = "option-button";
+              btn.textContent = choice;
+              btn.onclick = () => handleResponse(choice);
+              choicesDiv.appendChild(btn);
+            });
+          } else if (step.next) {
+            nextBtn.style.display = "block";
+          }
+        }
+      }
+      typeWriter();
+    }
+
+    function handleResponse(response) {
+      const step = dialogueScript[dialogueIndex];
+      choicesDiv.innerHTML = "";
+      npcText.textContent = `You: ${response}`;
+
+      const rude = ["That’s not funny.", "I don't believe you.", "Stop messing with me!", "This is insane.", "You need help."];
+      if (rude.includes(response)) karma--;
+      else karma++;
+
+      updateKarmaBar();
+
+      setTimeout(() => {
+        if (step.responses && step.responses[response]) {
+          npcText.textContent = step.responses[response];
+          setTimeout(() => {
+            dialogueIndex++;
+            showDialogue();
+          }, 2000);
+        } else {
+          dialogueIndex++;
+          showDialogue();
+        }
+      }, 1000);
+    }
+
+    function nextDialogue() {
+      dialogueIndex++;
+      if (!dialogueScript[dialogueIndex]) return;
+
+      if (dialogueScript[dialogueIndex].endCheck) {
+        document.getElementById("music").pause();
+        document.getElementById("ambient").pause();
+
+        if (karma >= 2) {
+          npcText.textContent = "Go now. And... thank you for being kind.";
+          setTimeout(() => {
+            window.location.href = "https://docs.google.com/presentation/d/1dqUywtiXBnkbzDBWZpQWOAYvrm2t6sw6r6T4gBfaooM/edit?slide=id.p#slide=id.p";
+          }, 3000);
+        } else if (karma <= -2) {
+          npcText.textContent = "You didn't care... now you'll stay with me.";
+          setTimeout(() => {
+            document.getElementById("blackout").style.display = "none";
+            document.getElementById("jumpscare").style.display = "block";
+            document.getElementById("sfx").play();
+            document.documentElement.requestFullscreen();
+          }, 3000);
+        } else {
+          npcText.textContent = "You weren’t cruel... but not kind either.";
+          setTimeout(() => {
+            npcText.textContent = "Maybe there's still hope...";
+          }, 2000);
+        }
+      } else {
+        showDialogue();
+      }
+    }
+  </script>
 </body>
 </html>
