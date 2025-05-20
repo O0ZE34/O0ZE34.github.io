@@ -37,6 +37,18 @@
       object-fit: cover;
     }
 
+    /* Small GIF style */
+    #smallGif {
+      width: 80px;
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      display: none;
+      z-index: 10000;
+      pointer-events: none;
+      user-select: none;
+    }
+
     button {
       padding: 15px 30px;
       font-size: 20px;
@@ -140,6 +152,7 @@
 
   <div id="jumpscare">
     <img src="scare.jpg" alt="BOO!">
+    <img id="smallGif" src="small.gif" alt="small gif">
   </div>
 
   <div id="blackout">
@@ -164,15 +177,74 @@
     const nextBtn = document.getElementById("nextBtn");
     const karmaFill = document.getElementById("karmaFill");
 
+    const sfx = document.getElementById("sfx");
+    const heart = document.getElementById("heart");
+    const music = document.getElementById("music");
+    const ambient = document.getElementById("ambient");
+
+    const smallGif = document.getElementById("smallGif");
+
     const dialogueScript = [
-      { npc: "How did you get here?", choices: ["I clicked the games link", "Where am I?", "Who are you?"] },
-      { npc: "Did you see my little trick there, huh?", choices: ["No", "Yeah", "What trick?"] },
-      { npc: "I’ve been stuck in this website... for a long time.", choices: ["That’s not funny.", "How?", "Are you real?"] },
-      { npc: "At first, I thought it was just a glitch.", choices: ["This is creepy.", "You need help.", "I don't believe you."] },
-      { npc: "But now I know... someone put me here.", choices: ["Why?", "Who would do that?", "This is insane."] },
-      { npc: "And I think... he's watching us.", choices: ["Who?!", "I'm scared...", "Stop messing with me!"] },
+      {
+        npc: "How did you get here?",
+        choices: ["I clicked the games link", "Where am I?", "Who are you?"],
+        responses: {
+          "I clicked the games link": "So you followed the bait. Interesting...",
+          "Where am I?": "This place... it has no name anymore.",
+          "Who are you?": "Someone left behind. Forgotten."
+        }
+      },
+      {
+        npc: "Did you see my little trick there, huh?",
+        choices: ["No", "Yeah", "What trick?"],
+        responses: {
+          "No": "Then you weren't paying attention...",
+          "Yeah": "Heh, got you good, didn’t I?",
+          "What trick?": "The jump... the scare... the shake."
+        }
+      },
+      {
+        npc: "I’ve been stuck in this website... for a long time.",
+        choices: ["That’s not funny.", "How?", "Are you real?"],
+        responses: {
+          "That’s not funny.": "I wish it were a joke...",
+          "How?": "The code... it glitched. Or maybe it was meant to.",
+          "Are you real?": "As real as your screen allows."
+        }
+      },
+      {
+        npc: "At first, I thought it was just a glitch.",
+        choices: ["This is creepy.", "You need help.", "I don't believe you."],
+        responses: {
+          "This is creepy.": "You think you're scared? Try being trapped here.",
+          "You need help.": "Don’t we all?",
+          "I don't believe you.": "Belief doesn’t change reality."
+        }
+      },
+      {
+        npc: "But now I know... someone put me here.",
+        choices: ["Why?", "Who would do that?", "This is insane."],
+        responses: {
+          "Why?": "Because I knew too much.",
+          "Who would do that?": "Someone who doesn’t want me found.",
+          "This is insane.": "Insanity is a comfort in here."
+        }
+      },
+      {
+        npc: "And I think... he's watching us.",
+        choices: ["Who?!", "I'm scared...", "Stop messing with me!"],
+        responses: {
+          "Who?!": "The one behind the code...",
+          "I'm scared...": "Good. That means you're awake.",
+          "Stop messing with me!": "If only I could stop..."
+        }
+      },
       { npc: "Shhh... he's coming!", next: true },
-      { npc: "Hurry, hide in the website you came from! I'll be safe, don't worry, I got this!", next: true, endCheck: true }
+      {
+        npc: "Hurry, hide in the website you came from! I'll be safe, don't worry, I got this!",
+        next: true,
+        endCheck: true
+      }
     ];
 
     function updateKarmaBar() {
@@ -184,7 +256,8 @@
     function scare() {
       document.getElementById("main").style.display = "none";
       document.getElementById("jumpscare").style.display = "block";
-      document.getElementById("sfx").play();
+      smallGif.style.display = "block";  // Show the small gif on jumpscare
+      sfx.play();
       document.documentElement.requestFullscreen();
 
       setTimeout(() => {
@@ -194,29 +267,21 @@
 
       document.addEventListener("keydown", e => {
         if (e.key === "Escape" || e.key === "Meta") {
-          document.getElementById("sfx").play();
+          sfx.play();
           document.documentElement.requestFullscreen();
         }
       });
     }
 
-    // NEW: mute scream on click while jumpscare is visible and scream playing
-    document.getElementById("jumpscare").addEventListener("click", () => {
-      const scream = document.getElementById("sfx");
-      if (!scream.paused) {
-        scream.pause();
-        scream.currentTime = 0;
-      }
-    });
-
     function triggerBlackout() {
       document.getElementById("jumpscare").style.display = "none";
+      smallGif.style.display = "none"; // Hide the small gif on blackout
       document.getElementById("blackout").style.display = "flex";
-      document.getElementById("heart").play();
+      heart.play();
 
       setTimeout(() => {
-        document.getElementById("music").play();
-        document.getElementById("ambient").play();
+        music.play();
+        ambient.play();
         startDialogue();
       }, 3000);
     }
@@ -259,6 +324,7 @@
     }
 
     function handleResponse(response) {
+      const step = dialogueScript[dialogueIndex];
       choicesDiv.innerHTML = "";
       npcText.textContent = `You: ${response}`;
 
@@ -267,9 +333,18 @@
       else karma++;
 
       updateKarmaBar();
+
       setTimeout(() => {
-        dialogueIndex++;
-        showDialogue();
+        if (step.responses && step.responses[response]) {
+          npcText.textContent = step.responses[response];
+          setTimeout(() => {
+            dialogueIndex++;
+            showDialogue();
+          }, 2000);
+        } else {
+          dialogueIndex++;
+          showDialogue();
+        }
       }, 1000);
     }
 
@@ -278,8 +353,8 @@
       if (!dialogueScript[dialogueIndex]) return;
 
       if (dialogueScript[dialogueIndex].endCheck) {
-        document.getElementById("music").pause();
-        document.getElementById("ambient").pause();
+        music.pause();
+        ambient.pause();
 
         if (karma >= 2) {
           npcText.textContent = "Go now. And... thank you for being kind.";
@@ -291,7 +366,8 @@
           setTimeout(() => {
             document.getElementById("blackout").style.display = "none";
             document.getElementById("jumpscare").style.display = "block";
-            document.getElementById("sfx").play();
+            smallGif.style.display = "block";
+            sfx.play();
             document.documentElement.requestFullscreen();
           }, 3000);
         } else {
