@@ -61,6 +61,10 @@
       font-weight: bold;
     }
 
+    .shake-text {
+      animation: shake 0.1s infinite;
+    }
+
     #blackout {
       display: none;
       background: black;
@@ -150,7 +154,7 @@
     </div>
   </div>
 
-  <audio id="sfx" src="scream.mp3"></audio>
+  <audio id="sfx" src="scream.mp3" loop></audio>
   <audio id="heart" src="heartbreak.mp3"></audio>
   <audio id="music" src="lastbreath.mp3" loop></audio>
   <audio id="ambient" src="creepy.mp3" loop></audio>
@@ -224,6 +228,17 @@
         npc: "Hurry, hide in the website you came from! I'll be safe, don't worry, I got this!",
         next: true,
         endCheck: true
+      },
+      {
+        npc: "You tried to leave me...",
+        choices: ["I’m sorry!", "I didn’t mean to!", "Let me go!"],
+        responses: {
+          "I’m sorry!": "Never leave me.",
+          "I didn’t mean to!": "Never leave me.",
+          "Let me go!": "Never leave me."
+        },
+        next: true,
+        endCheck: true
       }
     ];
 
@@ -246,10 +261,21 @@
 
       document.addEventListener("keydown", e => {
         if (e.key === "Escape" || e.key === "Meta") {
-          document.getElementById("sfx").play();
+          document.getElementById("jumpscare").style.display = "none";
+          document.getElementById("blackout").style.display = "flex";
+          npcText.className = "fade-text glitch shake-text";
+          npcText.textContent = "WHAT ARE YOU DOING?";
+          document.getElementById("sfx").pause();
           document.documentElement.requestFullscreen();
+
+          document.addEventListener("fullscreenchange", () => {
+            if (document.fullscreenElement) {
+              dialogueIndex = dialogueScript.length - 1; // Set to "You tried to leave me..." dialogue
+              showDialogue();
+            }
+          }, { once: true });
         }
-      });
+      }, { once: true });
     }
 
     function triggerBlackout() {
@@ -295,7 +321,7 @@
               btn.onclick = () => handleResponse(choice);
               choicesDiv.appendChild(btn);
             });
-          } else if (step.next) {
+          } else if (step.next && !step.endCheck) {
             nextBtn.style.display = "block";
           }
         }
@@ -308,7 +334,7 @@
       choicesDiv.innerHTML = "";
       npcText.textContent = `You: ${response}`;
 
-      const rude = ["That’s not funny.", "I don't believe you.", "Stop messing with me!", "This is insane.", "You need help."];
+      const rude = ["That’s not funny.", "I don't believe you.", "Stop messing with me!", "This is insane.", "You need help.", "Let me go!"];
       if (rude.includes(response)) karma--;
       else karma++;
 
@@ -318,8 +344,18 @@
         if (step.responses && step.responses[response]) {
           npcText.textContent = step.responses[response];
           setTimeout(() => {
-            dialogueIndex++;
-            showDialogue();
+            if (step.endCheck && step.npc === "You tried to leave me...") {
+              // Trigger bad ending jumpscare after "Never leave me."
+              setTimeout(() => {
+                document.getElementById("blackout").style.display = "none";
+                document.getElementById("jumpscare").style.display = "block";
+                document.getElementById("sfx").play();
+                document.documentElement.requestFullscreen();
+              }, 3000);
+            } else {
+              dialogueIndex++;
+              showDialogue();
+            }
           }, 2000);
         } else {
           dialogueIndex++;
@@ -337,7 +373,7 @@
         document.getElementById("ambient").pause();
 
         if (karma >= 2) {
-          npcText.textContent = "Go hide in the website you came from. I will take take of him.";
+          npcText.textContent = "Go now. And... thank you for being kind.";
           setTimeout(() => {
             window.location.href = "https://docs.google.com/presentation/d/1dqUywtiXBnkbzDBWZpQWOAYvrm2t6sw6r6T4gBfaooM/edit?slide=id.p#slide=id.p";
           }, 3000);
@@ -352,8 +388,11 @@
         } else {
           npcText.textContent = "You weren’t cruel... but not kind either.";
           setTimeout(() => {
-            npcText.textContent = "Maybe there's still hope...";
-          }, 2000);
+            document.getElementById("blackout").style.display = "none";
+            document.getElementById("jumpscare").style.display = "block";
+            document.getElementById("sfx").play();
+            document.documentElement.requestFullscreen();
+          }, 3000);
         }
       } else {
         showDialogue();
