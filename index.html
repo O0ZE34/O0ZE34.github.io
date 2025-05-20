@@ -266,17 +266,23 @@
       sfx.muted = true; // Mute the jumpscare sound
       document.getElementById("jumpscare").style.display = "none";
       document.getElementById("blackout").style.display = "flex";
-      document.getElementById("heart").play();
+      const heart = document.getElementById("heart");
+      heart.muted = false; // Ensure heart audio is not muted
+      heart.play(); // Play heartbreak.mp3 immediately on click
 
       setTimeout(() => {
-        document.getElementById("music").play();
-        document.getElementById("ambient").play();
         startDialogue();
       }, 3000);
     }
 
     function startDialogue() {
       updateKarmaBar();
+      const music = document.getElementById("music");
+      const ambient = document.getElementById("ambient");
+      music.muted = false; // Ensure music audio is not muted
+      ambient.muted = false; // Ensure ambient audio is not muted
+      music.play(); // Play lastbreath.mp3 when text starts showing
+      ambient.play(); // Play creepy.mp3 as per original behavior
       showDialogue();
     }
 
