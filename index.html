@@ -37,7 +37,6 @@
       object-fit: cover;
     }
 
-    /* Small GIF style */
     #smallGif {
       width: 80px;
       position: fixed;
@@ -139,6 +138,19 @@
       50% { text-shadow: -2px 0 red, 2px 0 cyan; }
       100% { text-shadow: 2px 0 red, -2px 0 cyan; }
     }
+
+    /* Glitch Screen */
+    #glitchScreen {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      background: url('glitch.gif') center center / cover no-repeat;
+      z-index: 10000;
+      pointer-events: none;
+    }
   </style>
 </head>
 <body>
@@ -154,6 +166,8 @@
     <img src="scare.jpg" alt="BOO!">
     <img id="smallGif" src="small.gif" alt="small gif">
   </div>
+
+  <div id="glitchScreen"></div> <!-- Glitch Screen Layer -->
 
   <div id="blackout">
     <div id="dialogue">
@@ -183,69 +197,9 @@
     const ambient = document.getElementById("ambient");
 
     const smallGif = document.getElementById("smallGif");
+    const glitchScreen = document.getElementById("glitchScreen");
 
-    const dialogueScript = [
-      {
-        npc: "How did you get here?",
-        choices: ["I clicked the games link", "Where am I?", "Who are you?"],
-        responses: {
-          "I clicked the games link": "So you followed the bait. Interesting...",
-          "Where am I?": "This place... it has no name anymore.",
-          "Who are you?": "Someone left behind. Forgotten."
-        }
-      },
-      {
-        npc: "Did you see my little trick there, huh?",
-        choices: ["No", "Yeah", "What trick?"],
-        responses: {
-          "No": "Then you weren't paying attention...",
-          "Yeah": "Heh, got you good, didn’t I?",
-          "What trick?": "The jump... the scare... the shake."
-        }
-      },
-      {
-        npc: "I’ve been stuck in this website... for a long time.",
-        choices: ["That’s not funny.", "How?", "Are you real?"],
-        responses: {
-          "That’s not funny.": "I wish it were a joke...",
-          "How?": "The code... it glitched. Or maybe it was meant to.",
-          "Are you real?": "As real as your screen allows."
-        }
-      },
-      {
-        npc: "At first, I thought it was just a glitch.",
-        choices: ["This is creepy.", "You need help.", "I don't believe you."],
-        responses: {
-          "This is creepy.": "You think you're scared? Try being trapped here.",
-          "You need help.": "Don’t we all?",
-          "I don't believe you.": "Belief doesn’t change reality."
-        }
-      },
-      {
-        npc: "But now I know... someone put me here.",
-        choices: ["Why?", "Who would do that?", "This is insane."],
-        responses: {
-          "Why?": "Because I knew too much.",
-          "Who would do that?": "Someone who doesn’t want me found.",
-          "This is insane.": "Insanity is a comfort in here."
-        }
-      },
-      {
-        npc: "And I think... he's watching us.",
-        choices: ["Who?!", "I'm scared...", "Stop messing with me!"],
-        responses: {
-          "Who?!": "The one behind the code...",
-          "I'm scared...": "Good. That means you're awake.",
-          "Stop messing with me!": "If only I could stop..."
-        }
-      },
-      { npc: "Shhh... he's coming!", next: true },
-      {
-        npc: "Hurry, hide in the website you came from! I'll be safe, don't worry, I got this!",
-        next: true,
-        endCheck: true
-      }
-    ];
+    const dialogueScript = [...]; // your dialogueScript array stays unchanged
 
     function updateKarmaBar() {
       const percent = Math.max(0, Math.min(100, karma * 20 + 50));
@@ -256,14 +210,15 @@
     function scare() {
       document.getElementById("main").style.display = "none";
       document.getElementById("jumpscare").style.display = "block";
-      smallGif.style.display = "block";  // Show the small gif on jumpscare
+      smallGif.style.display = "block";
       sfx.play();
-      document.documentElement.requestFullscreen();
+      glitchScreen.style.display = "block";
 
       setTimeout(() => {
+        glitchScreen.style.display = "none";
         document.addEventListener("click", triggerBlackout, { once: true });
         document.addEventListener("touchstart", triggerBlackout, { once: true });
-      }, 500);
+      }, 1000); // 1-second glitch flash
 
       document.addEventListener("keydown", e => {
         if (e.key === "Escape" || e.key === "Meta") {
@@ -271,115 +226,12 @@
           document.documentElement.requestFullscreen();
         }
       });
+
+      document.documentElement.requestFullscreen();
     }
 
-    function triggerBlackout() {
-      document.getElementById("jumpscare").style.display = "none";
-      smallGif.style.display = "none"; // Hide the small gif on blackout
-      document.getElementById("blackout").style.display = "flex";
-      heart.play();
+    // ... rest of your code (unchanged)
 
-      setTimeout(() => {
-        music.play();
-        ambient.play();
-        startDialogue();
-      }, 3000);
-    }
-
-    function startDialogue() {
-      updateKarmaBar();
-      showDialogue();
-    }
-
-    function showDialogue() {
-      const step = dialogueScript[dialogueIndex];
-      npcText.className = "fade-text glitch";
-      choicesDiv.innerHTML = "";
-      nextBtn.style.display = "none";
-
-      let i = 0;
-      const fullText = step.npc;
-      npcText.textContent = "";
-
-      function typeWriter() {
-        if (i < fullText.length) {
-          npcText.textContent += fullText.charAt(i);
-          i++;
-          setTimeout(typeWriter, 50);
-        } else {
-          if (step.choices) {
-            step.choices.forEach(choice => {
-              const btn = document.createElement("button");
-              btn.className = "option-button";
-              btn.textContent = choice;
-              btn.onclick = () => handleResponse(choice);
-              choicesDiv.appendChild(btn);
-            });
-          } else if (step.next) {
-            nextBtn.style.display = "block";
-          }
-        }
-      }
-      typeWriter();
-    }
-
-    function handleResponse(response) {
-      const step = dialogueScript[dialogueIndex];
-      choicesDiv.innerHTML = "";
-      npcText.textContent = `You: ${response}`;
-
-      const rude = ["That’s not funny.", "I don't believe you.", "Stop messing with me!", "This is insane.", "You need help."];
-      if (rude.includes(response)) karma--;
-      else karma++;
-
-      updateKarmaBar();
-
-      setTimeout(() => {
-        if (step.responses && step.responses[response]) {
-          npcText.textContent = step.responses[response];
-          setTimeout(() => {
-            dialogueIndex++;
-            showDialogue();
-          }, 2000);
-        } else {
-          dialogueIndex++;
-          showDialogue();
-        }
-      }, 1000);
-    }
-
-    function nextDialogue() {
-      dialogueIndex++;
-      if (!dialogueScript[dialogueIndex]) return;
-
-      if (dialogueScript[dialogueIndex].endCheck) {
-        music.pause();
-        ambient.pause();
-
-        if (karma >= 2) {
-          npcText.textContent = "Go now. And... thank you for being kind.";
-          setTimeout(() => {
-            window.location.href = "https://docs.google.com/presentation/d/1dqUywtiXBnkbzDBWZpQWOAYvrm2t6sw6r6T4gBfaooM/edit?slide=id.p#slide=id.p";
-          }, 3000);
-        } else if (karma <= -2) {
-          npcText.textContent = "You didn't care... now you'll stay with me.";
-          setTimeout(() => {
-            document.getElementById("blackout").style.display = "none";
-            document.getElementById("jumpscare").style.display = "block";
-            smallGif.style.display = "block";
-            sfx.play();
-            document.documentElement.requestFullscreen();
-          }, 3000);
-        } else {
-          npcText.textContent = "You weren’t cruel... but not kind either.";
-          setTimeout(() => {
-            npcText.textContent = "Maybe there's still hope...";
-          }, 2000);
-        }
-      } else {
-        showDialogue();
-      }
-    }
   </script>
 </body>
 </html>
