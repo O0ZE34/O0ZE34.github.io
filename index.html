@@ -236,15 +236,6 @@
     function scare() {
       document.getElementById("main").style.display = "none";
       document.getElementById("jumpscare").style.display = "block";
-
-      // Mute everything else
-      document.getElementById("heart").pause();
-      document.getElementById("heart").muted = true;
-      document.getElementById("music").pause();
-      document.getElementById("music").muted = true;
-      document.getElementById("ambient").pause();
-      document.getElementById("ambient").muted = true;
-
       document.getElementById("sfx").play();
       document.documentElement.requestFullscreen();
 
@@ -264,6 +255,8 @@
     function triggerBlackout() {
       document.getElementById("jumpscare").style.display = "none";
       document.getElementById("blackout").style.display = "flex";
+
+      document.getElementById("sfx").muted = true; // Mute scream
       document.getElementById("heart").play();
 
       setTimeout(() => {
