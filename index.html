@@ -304,7 +304,7 @@
     function handleResponse(response) {
       const step = dialogueScript[dialogueIndex];
       choicesDiv.innerHTML = "";
-      npcText.textContent = You: ${response};
+      npcText.textContent = `You: ${response}`;
 
       const rude = ["That’s not funny.", "I don't believe you.", "Stop messing with me!", "This is insane.", "You need help."];
       if (rude.includes(response)) karma--;
