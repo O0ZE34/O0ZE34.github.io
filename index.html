@@ -253,6 +253,8 @@
     }
 
     function triggerBlackout() {
+      const sfx = document.getElementById("sfx");
+      sfx.muted = true; // Mute the jumpscare sound
       document.getElementById("jumpscare").style.display = "none";
       document.getElementById("blackout").style.display = "flex";
       document.getElementById("heart").play();
